@@ -105,7 +105,7 @@ async function upload(artifact) {
     primary_file: artifact.primary_file,
     file_parts: artifact.file_parts
   });
-  payload.append("data", data);
+  payload.append("data", new Blob([data], { type: "application/json" }));
 
   const uploadOptions = {
     body: payload
@@ -250,7 +250,7 @@ async function resolveDependencyList(inputString, relation, output) {
     projects.map(async (project) => {
       let projectId = projectIdCache.get(project);
       if (!projectId) {
-        const projectInfo = await sendApiRequest(HTTP_METHOD.GET, `${URL_GET_PROJECT_BASE}/${project}`);
+        const projectInfo = await sendApiRequest(HTTP_METHOD.GET, `${URL_GET_PROJECT_BASE}/${project}`, {}, false);
         projectId = projectInfo.id;
         projectIdCache.set(project, projectId);
       }
@@ -272,19 +272,23 @@ function parseInputList(values, separator = ",", mapper = (v) => v) {
   return result.map(value => mapper(value.trim())).filter(Boolean);
 }
 
-async function sendApiRequest(method, url, options = {}) {
-  actions.debug(`Sending request to ${url}`);
+async function sendApiRequest(method, url, options = {}, contentLogging = true) {
   const headers = options?.headers || {};
-  const response = await fetch(url, {
+  const requestOptions = {
     ...options,
     method,
     headers: {
       ...headers,
       Authorization: `Bearer ${inputs.token}`
     }
-  });
+  };
+  if (contentLogging) {
+    const body = options?.body || {};
+    actions.debug(`Sending request to ${url} with body:\n${JSON.stringify(body, null, 2)}`);
+  }
+  const response = await fetch(url, requestOptions);
   const body = await response.text();
-  if (actions.isDebug()) {
+  if (actions.isDebug() && contentLogging) {
     actions.debug("Response content:");
     actions.debug(body);
   }
