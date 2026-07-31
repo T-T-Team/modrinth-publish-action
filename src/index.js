@@ -201,10 +201,11 @@ async function processFile(artifact) {
   ]);
 
   // Read the file
-  const content = fs.createReadStream(artifact);
+  const fileContent = await fs.promises.readFile(artifact);
+  const blob = new Blob([fileContent], { type: "application/java-archive" });
 
   return {
-    file: content,
+    file: blob,
     // upload metadata
     name: displayName,
     version_number: versionNumber,
