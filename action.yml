@@ -1,0 +1,68 @@
+name: CurseForge Publish Action
+description: Publishes mods to CurseForge via official API
+author: Toma
+
+branding:
+  icon: align-justify
+  color: blue
+
+inputs:
+  artifact-directory:
+    required: true
+    description: 'Location with GitHub artifacts'
+  token:
+    required: true
+    description: 'Token for uploading to CurseForge'
+  project-id:
+    required: true
+    description: 'Your project ID'
+  changelog-content:
+    required: false
+    description: 'Changelog content for this release'
+    default: ""
+  release-channel:
+    required: false
+    description: 'Allows you to set release channel such as Release, Beta, Alpha. If empty it is resolved from filename based on -beta/-alpha suffix'
+    default: ""
+  game-version:
+    required: true
+    description: 'Comma separated string with Minecraft game version numbers. Such as 26.2,26.1.2,...'
+  game-environment:
+    required: false
+    description: 'Environment where this mod is required. Defaults to client_and_server. Other common values are: client_or_server, client_only, server_only, client_only_server_optional, server_only_client_optional'
+    default: "client_and_server"
+  mod-loader:
+    required: true
+    description: 'Comma separated list of loaders to be used for the upload file. Example: NeoForge,Fabric,Forge,...'
+  feature-version:
+    required: false
+    description: 'If this version should be features on the Modrinth page'
+    default: "false"
+  required-dependencies:
+    required: false
+    description: 'Comma separated list of required project dependencies'
+    default: ""
+  optional-dependencies:
+    required: false
+    description: 'Comma separated list of optional project dependencies'
+    default: ""
+  embedded-dependencies:
+    required: false
+    description: 'Comma separated list of embedded project dependencies'
+    default: ""
+  incompatible-dependencies:
+    required: false
+    description: 'Comma separated list of incompatible projects'
+    default: ""
+  debug-mode:
+    required: false
+    description: 'For debugging purposes, when enabled no files are actually uploaded to CurseForge'
+    default: "false"
+
+outputs:
+  version-id:
+    description: 'The version ID of uploaded file'
+
+runs:
+  using: node24
+  main: dist/index.js

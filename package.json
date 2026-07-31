@@ -1,0 +1,19 @@
+{
+  "name": "modrinth-publish-action",
+  "version": "1.0.0",
+  "description": "Action for publishing mods to Modrinth",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --platform=node --outfile=dist/index.js",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@actions/core": "2.0.3"
+  },
+  "keywords": [],
+  "author": "Toma",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  }
+}
