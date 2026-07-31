@@ -33,7 +33,7 @@ inputs:
     default: "client_and_server"
   mod-loader:
     required: true
-    description: 'Comma separated list of loaders to be used for the upload file. Example: NeoForge,Fabric,Forge,...'
+    description: 'Comma separated list of loaders to be used for the upload file. Example: neoforge,fabric,forge,...'
   feature-version:
     required: false
     description: 'If this version should be features on the Modrinth page'

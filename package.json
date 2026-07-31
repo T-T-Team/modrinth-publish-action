@@ -1,6 +1,6 @@
 {
   "name": "modrinth-publish-action",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Action for publishing mods to Modrinth",
   "main": "index.js",
   "scripts": {

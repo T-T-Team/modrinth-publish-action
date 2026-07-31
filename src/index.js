@@ -41,11 +41,11 @@ const ENVIRONMENTS = [
   ENV_SERVER, ENV_SERVER_CLIENT_OPTIONAL, ENV_SINGLEPLAYER, ENV_DEDICATED_SERVER, ENV_UNKNOWN
 ];
 
-const LOADER_FORGE = "Forge";
-const LOADER_FABRIC = "Fabric";
-const LOADER_NEOFORGE = "NeoForge";
-const LOADER_QUILT = "Quilt";
-const LOADER_RIFT = "Rift";
+const LOADER_FORGE = "forge";
+const LOADER_FABRIC = "fabric";
+const LOADER_NEOFORGE = "neoforge";
+const LOADER_QUILT = "quilt";
+const LOADER_RIFT = "rift";
 const MOD_LOADERS = [
   LOADER_FORGE, LOADER_FABRIC, LOADER_NEOFORGE, LOADER_QUILT, LOADER_RIFT
 ];
@@ -187,7 +187,7 @@ async function processFile(artifact) {
   // game version
   const gameVersions = parseInputList(inputs.gameVersion);
   // mod loader
-  const loaders = parseInputList(inputs.modLoader, ",", loader => loader.toLowerCase());
+  const loaders = parseInputList(inputs.modLoader);
 
   const displayName = path.basename(artifact, ".jar").toLowerCase();
   const versionNumber = resolveVersionNumberFromFilename(displayName);
@@ -266,12 +266,12 @@ async function resolveDependencyList(inputString, relation, output) {
   output.push(...dependencies);
 }
 
-function parseInputList(values, separator = ",", mapper = (v) => v) {
+function parseInputList(values, separator = ",") {
   if (!values) {
     return [];
   }
   const result = values.split(separator);
-  return result.map(value => mapper(value.trim())).filter(Boolean);
+  return result.map(value => value.trim()).filter(Boolean);
 }
 
 async function sendApiRequest(method, url, options = {}, contentLogging = true) {
