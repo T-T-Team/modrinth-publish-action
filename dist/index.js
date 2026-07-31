@@ -21865,7 +21865,6 @@ async function main() {
 }
 async function upload(artifact) {
   const payload = new FormData();
-  payload.append("file", artifact.file, `${artifact.name}.jar`);
   const data = JSON.stringify({
     name: artifact.name,
     version_number: artifact.version_number,
@@ -21884,7 +21883,8 @@ async function upload(artifact) {
     actions.debug(`Uploading file with data:
 ${data}`);
   }
-  payload.append("data", new Blob([data], { type: "application/json" }));
+  payload.append("data", data);
+  payload.append("file", artifact.file, `${artifact.name}.jar`);
   const uploadOptions = {
     body: payload
   };
