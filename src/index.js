@@ -105,6 +105,9 @@ async function upload(artifact) {
     primary_file: artifact.primary_file,
     file_parts: artifact.file_parts
   });
+  if (actions.isDebug()) {
+    actions.debug(`Uploading file with data:\n${data}`);
+  }
   payload.append("data", new Blob([data], { type: "application/json" }));
 
   const uploadOptions = {
