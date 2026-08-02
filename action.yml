@@ -8,8 +8,9 @@ branding:
 
 inputs:
   artifact-directory:
-    required: true
+    required: false
     description: 'Location with GitHub artifacts'
+    default: 'artifacts'
   token:
     required: true
     description: 'Token for uploading to CurseForge'
@@ -25,15 +26,17 @@ inputs:
     description: 'Allows you to set release channel such as Release, Beta, Alpha. If empty it is resolved from filename based on -beta/-alpha suffix'
     default: ""
   game-version:
-    required: true
-    description: 'Comma separated string with Minecraft game version numbers. Such as 26.2,26.1.2,...'
+    required: false
+    description: 'Comma separated string with Minecraft game version numbers. Such as 26.2,26.1.2,... If empty it is resolved from filename based on +xx.x suffix'
+    default: ''
   game-environment:
     required: false
     description: 'Environment where this mod is required. Defaults to client_and_server. Other common values are: client_or_server, client_only, server_only, client_only_server_optional, server_only_client_optional'
     default: "client_and_server"
   mod-loader:
-    required: true
-    description: 'Comma separated list of loaders to be used for the upload file. Example: neoforge,fabric,forge,...'
+    required: false
+    description: 'Comma separated list of loaders to be used for the upload file. Example: neoforge,fabric,forge,... If empty it is attempted to be resolved from filename based on -fabric/-neoforge/... file content'
+    default: ''
   feature-version:
     required: false
     description: 'If this version should be features on the Modrinth page'

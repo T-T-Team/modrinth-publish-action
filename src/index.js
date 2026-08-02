@@ -2,7 +2,8 @@ const actions = require('@actions/core');
 const fs = require('fs');
 const path = require('path');
 
-const VERSION_NUMBER_REGEX = /([\d.]+(?:-\w+[.\d]*)?(?:\+[\d.]+)?)$/;
+const VERSION_NUMBER_REGEX = /([\d.]+(?:-\w+[.\d]*)?(?:\+[\w.-]+)?)$/;
+const GAME_VERSION_REGEX = /\+([\w.-]+)/;
 const BASE_API_URL = "https://api.modrinth.com/v2";
 const URL_GET_PROJECT_BASE = `${BASE_API_URL}/project`;
 const URL_CREATE_VERSION = `${BASE_API_URL}/version`;
@@ -127,9 +128,6 @@ function setDefaultValuesAndValidate() {
   requireInput(inputs.artifactDirectory, "artifact-directory");
   requireInput(inputs.token, "token");
   requireInput(inputs.projectId, "project-id");
-  requireInput(inputs.gameVersion, "game-version");
-  requireInput(inputs.modLoader, "mod-loader")
-
 
   // Game environment
   if (!ENVIRONMENTS.includes(inputs.gameEnvironment)) {
@@ -142,10 +140,12 @@ function setDefaultValuesAndValidate() {
   }
 
   // Mod loaders
-  const loaders = parseInputList(inputs.modLoader);
-  for (const loader of loaders) {
-    if (!MOD_LOADERS.includes(loader)) {
-      throw new Error(`Invalid mod loader '${loader}', must be one of: ${MOD_LOADERS}`);
+  if (inputs.modLoader) {
+    const loaders = parseInputList(inputs.modLoader);
+    for (const loader of loaders) {
+      if (!MOD_LOADERS.includes(loader)) {
+        throw new Error(`Invalid mod loader '${loader}', must be one of: ${MOD_LOADERS}`);
+      }
     }
   }
 }
@@ -184,12 +184,12 @@ function filterFile(file) {
 }
 
 async function processFile(artifact) {
-  // game version
-  const gameVersions = parseInputList(inputs.gameVersion);
-  // mod loader
-  const loaders = parseInputList(inputs.modLoader);
-
   const displayName = path.basename(artifact, ".jar").toLowerCase();
+  // game version
+  const gameVersions = resolveGameVersion(displayName);
+  // mod loader
+  const loaders = resolveModLoaders(displayName);
+
   const versionNumber = resolveVersionNumberFromFilename(displayName);
   const releaseChannel = inputs.releaseChannel || resolveReleaseType(displayName);
 
@@ -222,6 +222,44 @@ async function processFile(artifact) {
     primary_file: "file",
     file_parts: [ "file" ]
   }
+}
+
+function resolveGameVersion(name) {
+  const gameVersions = [];
+
+  if (inputs.gameVersion) {
+    gameVersions.push(...parseInputList(inputs.gameVersion));
+  } else {
+    const match = name.match(GAME_VERSION_REGEX);
+    if (match) {
+      gameVersions.push(match[1]);
+    }
+  }
+
+  if (gameVersions.length === 0) {
+    throw new Error(`Unable to resolve game version from filename '${name}', please include 'game-version' action input`);
+  }
+  return gameVersions;
+}
+
+function resolveModLoaders(name) {
+  const loaders = [];
+
+  if (inputs.modLoader) {
+    loaders.push(...parseInputList(inputs.modLoader));
+  } else {
+    for (const loader of MOD_LOADERS) {
+      if (name.includes(`-${loader}`)) {
+        loaders.push(loader);
+      }
+    }
+  }
+
+  if (loaders.length === 0) {
+    throw new Error(`Unable to resolve mod loaders from filename '${name}', please include 'mod-loader' action input`);
+  }
+
+  return loaders;
 }
 
 function resolveVersionNumberFromFilename(filename) {

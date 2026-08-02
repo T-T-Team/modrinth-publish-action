@@ -21775,7 +21775,8 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
 var actions = require_core();
 var fs = require("fs");
 var path = require("path");
-var VERSION_NUMBER_REGEX = /([\d.]+(?:-\w+[.\d]*)?(?:\+[\d.]+)?)$/;
+var VERSION_NUMBER_REGEX = /([\d.]+(?:-\w+[.\d]*)?(?:\+[\w.-]+)?)$/;
+var GAME_VERSION_REGEX = /\+([\w.-]+)/;
 var BASE_API_URL = "https://api.modrinth.com/v2";
 var URL_GET_PROJECT_BASE = `${BASE_API_URL}/project`;
 var URL_CREATE_VERSION = `${BASE_API_URL}/version`;
@@ -21903,18 +21904,18 @@ function setDefaultValuesAndValidate() {
   requireInput(inputs.artifactDirectory, "artifact-directory");
   requireInput(inputs.token, "token");
   requireInput(inputs.projectId, "project-id");
-  requireInput(inputs.gameVersion, "game-version");
-  requireInput(inputs.modLoader, "mod-loader");
   if (!ENVIRONMENTS.includes(inputs.gameEnvironment)) {
     throw new Error(`Invalid game environment '${inputs.gameEnvironment}', must be one of: ${ENVIRONMENTS}`);
   }
   if (inputs.releaseChannel && !CHANNEL_TYPES.includes(inputs.releaseChannel)) {
     throw new Error(`Invalid release channel '${inputs.releaseChannel}', must be one of: ${CHANNEL_TYPES}`);
   }
-  const loaders = parseInputList(inputs.modLoader);
-  for (const loader of loaders) {
-    if (!MOD_LOADERS.includes(loader)) {
-      throw new Error(`Invalid mod loader '${loader}', must be one of: ${MOD_LOADERS}`);
+  if (inputs.modLoader) {
+    const loaders = parseInputList(inputs.modLoader);
+    for (const loader of loaders) {
+      if (!MOD_LOADERS.includes(loader)) {
+        throw new Error(`Invalid mod loader '${loader}', must be one of: ${MOD_LOADERS}`);
+      }
     }
   }
 }
@@ -21948,9 +21949,9 @@ function filterFile(file) {
   return true;
 }
 async function processFile(artifact) {
-  const gameVersions = parseInputList(inputs.gameVersion);
-  const loaders = parseInputList(inputs.modLoader);
   const displayName = path.basename(artifact, ".jar").toLowerCase();
+  const gameVersions = resolveGameVersion(displayName);
+  const loaders = resolveModLoaders(displayName);
   const versionNumber = resolveVersionNumberFromFilename(displayName);
   const releaseChannel = inputs.releaseChannel || resolveReleaseType(displayName);
   const dependencies = [];
@@ -21978,6 +21979,37 @@ async function processFile(artifact) {
     primary_file: "file",
     file_parts: ["file"]
   };
+}
+function resolveGameVersion(name) {
+  const gameVersions = [];
+  if (inputs.gameVersion) {
+    gameVersions.push(...parseInputList(inputs.gameVersion));
+  } else {
+    const match = name.match(GAME_VERSION_REGEX);
+    if (match) {
+      gameVersions.push(match[1]);
+    }
+  }
+  if (gameVersions.length === 0) {
+    throw new Error(`Unable to resolve game version from filename '${name}', please include 'game-version' action input`);
+  }
+  return gameVersions;
+}
+function resolveModLoaders(name) {
+  const loaders = [];
+  if (inputs.modLoader) {
+    loaders.push(...parseInputList(inputs.modLoader));
+  } else {
+    for (const loader of MOD_LOADERS) {
+      if (name.includes(`-${loader}`)) {
+        loaders.push(loader);
+      }
+    }
+  }
+  if (loaders.length === 0) {
+    throw new Error(`Unable to resolve mod loaders from filename '${name}', please include 'mod-loader' action input`);
+  }
+  return loaders;
 }
 function resolveVersionNumberFromFilename(filename) {
   const match = filename.match(VERSION_NUMBER_REGEX);
